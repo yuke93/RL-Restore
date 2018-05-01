@@ -6,10 +6,10 @@ Test code is ready. Training code is coming...
 ### Overview
 
 - Framework
-<img src='http://mmlab.ie.cuhk.edu.hk/projects/RL-Restore/support/framework.png' align="center">
+<img src='imgs/framework.png' align="center">
 
 - Results
-![](http://mmlab.ie.cuhk.edu.hk/projects/RL-Restore/support/restore.gif)
+![](imgs/restore.gif)
 
 ### Run
 - Start testing
