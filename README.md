@@ -1,7 +1,7 @@
 ## RL-Restore [[project page](http://mmlab.ie.cuhk.edu.hk/projects/RL-Restore/)][[paper](https://arxiv.org/abs/1804.03312)]
 We run this code under [TensorFlow](https://www.tensorflow.org/) 1.3.
 
-Test code is ready. Training code is coming...
+:triangular_flag_on_post: Training code is ready!
 
 ### Overview
 
@@ -13,16 +13,33 @@ Test code is ready. Training code is coming...
 
 ### Run
 - Start testing
-```
-python main.py --dataset moderate
-```
-> `dataset`: choose a test set among `mild`, `moderate` and `severe`
+    ```
+    python main.py --dataset moderate
+    ```
+    > `dataset`: choose a test set among `mild`, `moderate` and `severe`
 
 - Dataset
 
-  - All test sets can be downloaded at [Google Drive](https://drive.google.com/open?id=19z2s1e3zT8_1J9ZtsCOrzUSsrQahuINo) or [Baidu Cloud](https://pan.baidu.com/s/1RXTcfI-mne5YZh3myQcjzQ). 
+    - All test sets can be downloaded at [Google Drive](https://drive.google.com/open?id=19z2s1e3zT8_1J9ZtsCOrzUSsrQahuINo) or [Baidu Cloud](https://pan.baidu.com/s/1RXTcfI-mne5YZh3myQcjzQ).
 
-  - Replace `test_images/` with the downloaded data and play with the whole dataset.
+    - Replace `test_images/` with the downloaded data and play with the whole dataset.
+
+### Train
+- Download training images
+    - Download training images (down-sampled DIV2K images) at [Google Drive](https://drive.google.com/file/d/146mmYHcZeWnklQ_Sg7ltCrJVqjL_yB3K/view?usp=sharing) or [Baidu Cloud](https://pan.baidu.com/s/1CD-E5dUMsMswvCVQhe5PeQ).
+
+    - Move the downloaded file to `data/train/` and unzip.
+
+-  Generate training data
+    - Run `data/train/generate_train.m` to generate training data in HDF5 format.
+
+    - You may generate multiple `.h5` files in `data/train/`
+
+- Let's train!
+
+    ```
+    python main.py --is_train True
+    ```
 
 ### Citation
 
