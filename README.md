@@ -11,7 +11,7 @@ We run this code under [TensorFlow](https://www.tensorflow.org/) 1.3.
 - Results
 ![](imgs/restore.gif)
 
-### Run
+### Test
 - Start testing
     ```
     python main.py --dataset moderate
@@ -40,6 +40,12 @@ We run this code under [TensorFlow](https://www.tensorflow.org/) 1.3.
     ```
     python main.py --is_train True
     ```
+
+    - When you observe `reward_sum` is increasing, it indicates training is going well.
+
+    - You can visualize reward increasing by TensorBoard
+
+    <img src='imgs/tensorboard.png' align="center">
 
 ### Citation
 
