@@ -1,59 +1,67 @@
 import numpy as np
 import tensorflow as tf
 import os
-from utils import psnr_cal, load_imgs, step_psnr_reward
+import h5py
+from utils import psnr_cal, load_imgs, step_psnr_reward, data_reformat
 
 class MyEnvironment(object):
     def __init__(self, config):
-
-        screen_width, screen_height = config.screen_width, config.screen_height
-        self.dims = (screen_width, screen_height)
-        self.test_batch = config.test_batch
-        self.test_in = 'test_images/' + config.dataset + '_in/'
-        self.test_gt = 'test_images/' + config.dataset + '_gt/'
-        self._screen = None
         self.reward = 0
         self.terminal = True
         self.stop_step = config.stop_step
         self.reward_func = config.reward_func
+        self.is_train = config.is_train
+        self.count = 0  # count restoration step
+        self.psnr, self.psnr_pre, self.psnr_init = 0., 0., 0.
 
-        # test data
-        list_in = [self.test_in + name for name in os.listdir(self.test_in)]
-        list_in.sort()
-        list_gt = [self.test_gt + name for name in os.listdir(self.test_gt)]
-        list_gt.sort()
-        self.data_all, self.label_all = load_imgs(list_in, list_gt)
-        self.test_total = len(list_in)
-        self.test_cur = 0
+        if self.is_train:
+            # training data
+            self.train_list = [config.train_dir + file for file in os.listdir(config.train_dir) if file.endswith('.h5')]
+            self.train_cur = 0
+            self.train_max = len(self.train_list)
+            f = h5py.File(self.train_list[self.train_cur], 'r')
+            self.data = f['data'].value
+            self.label = f['label'].value
+            f.close()
+            self.data_index = 0
+            self.data_len = len(self.data)
 
-        # BGR --> RGB, swap H and W
-        # This is because the data for tools training are in a different format
-        # You don't need to do so with your own tools
-        temp = self.data_all.copy()
-        self.data_all[:, :, :, 0] = temp[:, :, :, 2]
-        self.data_all[:, :, :, 2] = temp[:, :, :, 0]
-        self.data_all = np.swapaxes(self.data_all, 1, 2)
-        temp = self.label_all.copy()
-        self.label_all[:, :, :, 0] = temp[:, :, :, 2]
-        self.label_all[:, :, :, 2] = temp[:, :, :, 0]
-        self.label_all = np.swapaxes(self.label_all, 1, 2)
+            # validation data
+            f = h5py.File(config.val_dir + os.listdir(config.val_dir)[0], 'r')
+            self.data_test = f['data'].value
+            self.label_test = f['label'].value
+            f.close()
+            self.data_all = self.data_test
+            self.label_all = self.label_test
+        else:
+            # test data
+            self.test_batch = config.test_batch
+            self.test_in = config.test_dir + config.dataset + '_in/'
+            self.test_gt = config.test_dir + config.dataset + '_gt/'
+            list_in = [self.test_in + name for name in os.listdir(self.test_in)]
+            list_in.sort()
+            list_gt = [self.test_gt + name for name in os.listdir(self.test_gt)]
+            list_gt.sort()
+            self.name_list = [os.path.splitext(os.path.basename(file))[0] for file in list_in]
+            self.data_all, self.label_all = load_imgs(list_in, list_gt)
+            self.test_total = len(list_in)
+            self.test_cur = 0
 
-        self.data_test = self.data_all[0 : min(self.test_batch, self.test_total), ...]
-        self.label_test = self.label_all[0 : min(self.test_batch, self.test_total), ...]
+            # data reformat, because the data for tools training are in a different format
+            self.data_all = data_reformat(self.data_all)
+            self.label_all = data_reformat(self.label_all)
+            self.data_test = self.data_all[0 : min(self.test_batch, self.test_total), ...]
+            self.label_test = self.label_all[0 : min(self.test_batch, self.test_total), ...]
 
-        # reward functions
-        self.rewards = {'step_psnr_reward': step_psnr_reward}
-        self.reward_function = self.rewards[self.reward_func]
-
-        # base_psnr (input psnr)
+        # input PSNR
         self.base_psnr = 0.
         for k in range(len(self.data_all)):
             self.base_psnr += psnr_cal(self.data_all[k, ...], self.label_all[k, ...])
         self.base_psnr /= len(self.data_all)
 
-        self.data = np.array([[[[0]]]])
-        self._data_index = 0
-        self._data_len = len(self.data)
+        # reward functions
+        self.rewards = {'step_psnr_reward': step_psnr_reward}
+        self.reward_function = self.rewards[self.reward_func]
 
         # build toolbox
         self.action_size = 12 + 1
@@ -80,6 +88,77 @@ class MyEnvironment(object):
                 with sess.as_default():
                     saver.restore(sess, toolbox_path + 'tool%02d' % (idx + 1))
                     self.sessions.append(sess)
+
+
+    def new_image(self):
+        self.terminal = False
+        while self.data_index < self.data_len:
+            self.img = self.data[self.data_index: self.data_index + 1, ...]
+            self.img_gt = self.label[self.data_index: self.data_index + 1, ...]
+            self.psnr = psnr_cal(self.img, self.img_gt)
+            if self.psnr > 50:  # ignore too smooth samples and rule out 'inf'
+                self.data_index += 1
+            else:
+                break
+
+        # update training file
+        if self.data_index >= self.data_len:
+            if self.train_max > 1:
+                self.train_cur += 1
+                if self.train_cur >= self.train_max:
+                    self.train_cur = 0
+
+                # load new file
+                print 'loading file No.%d' % (self.train_cur + 1)
+                f = h5py.File(self.train_list[self.train_cur], 'r')
+                self.data = f['data'].value
+                self.label = f['label'].value
+                self.data_len = len(self.data)
+                f.close()
+
+            # start from beginning
+            self.data_index = 0
+            while True:
+                self.img = self.data[self.data_index: self.data_index + 1, ...]
+                self.img_gt = self.label[self.data_index: self.data_index + 1, ...]
+                self.psnr = psnr_cal(self.img, self.img_gt)
+                if self.psnr > 50:  # ignore too smooth samples and rule out 'inf'
+                    self.data_index += 1
+                else:
+                    break
+
+        self.reward = 0
+        self.count = 0
+        self.psnr_init = self.psnr
+        self.data_index += 1
+        return self.img, self.reward, 0, self.terminal
+
+
+    def act(self, action):
+        self.psnr_pre = self.psnr
+        if action == self.action_size - 1:  # stop
+            self.terminal = True
+        else:
+            feed_dict = {self.inputs[action]: self.img}
+            with self.graphs[action].as_default():
+                with self.sessions[action].as_default():
+                    im_out = self.sessions[action].run(self.outputs[action], feed_dict=feed_dict)
+            self.img = im_out
+        self.psnr = psnr_cal(self.img, self.img_gt)
+
+        # max step
+        if self.count >= self.stop_step - 1:
+            self.terminal = True
+
+        # stop if too bad
+        if self.psnr < self.psnr_init:
+            self.terminal = True
+
+        # calculate reward
+        self.reward = self.reward_function(self.psnr, self.psnr_pre)
+        self.count += 1
+
+        return self.img, self.reward, self.terminal
 
 
     def act_test(self, action, step = 0):
@@ -112,7 +191,27 @@ class MyEnvironment(object):
             psnr_all[k] = psnr
             reward_all[k] = reward
 
-        return reward_all, psnr_all, self.base_psnr
+        if self.is_train:
+            return reward_all.mean(), psnr_all.mean(), self.base_psnr
+        else:
+            return reward_all, psnr_all, self.base_psnr
+
+
+    def update_test_data(self):
+        self.test_cur = self.test_cur + len(self.data_test)
+        test_end = min(self.test_total, self.test_cur + self.test_batch)
+        if self.test_cur >= test_end:
+            return False #failed
+        else:
+            self.data_test = self.data_all[self.test_cur: test_end, ...]
+            self.label_test = self.label_all[self.test_cur: test_end, ...]
+
+            # update base psnr
+            self.base_psnr = 0.
+            for k in range(len(self.data_test)):
+                self.base_psnr += psnr_cal(self.data_test[k, ...], self.label_test[k, ...])
+            self.base_psnr /= len(self.data_test)
+            return True #successful
 
 
     def get_test_imgs(self):
@@ -127,31 +226,5 @@ class MyEnvironment(object):
         return self.data_test.copy()
 
 
-    def get_action_size(self):
-        return self.action_size
-
-
     def get_test_info(self):
         return self.test_cur, len(self.data_test) # current image number & batch size
-
-
-    def update_test_data(self):
-        self.test_cur = self.test_cur + len(self.data_test)
-        test_end = min(self.test_total, self.test_cur + self.test_batch)
-        if self.test_cur >= test_end:
-            return False #failed
-        else:
-            self.data_test = self.data_all[self.test_cur: test_end, ...]
-            self.label_test = self.label_all[self.test_cur: test_end, ...]
-            # swap axes if shape is not right (for mixed data)
-            if self.data_test.shape[-1] > 3:
-                self.data_test = np.swapaxes(self.data_test, 1, 2)
-                self.data_test = np.swapaxes(self.data_test, 2, 3)
-                self.label_test = np.swapaxes(self.label_test, 1, 2)
-                self.label_test = np.swapaxes(self.label_test, 2, 3)
-            # update base psnr
-            self.base_psnr = 0.
-            for k in range(len(self.data_test)):
-                self.base_psnr += psnr_cal(self.data_test[k, ...], self.label_test[k, ...])
-            self.base_psnr /= len(self.data_test)
-            return True #successful

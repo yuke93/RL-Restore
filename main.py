@@ -9,20 +9,24 @@ import sys
 flags = tf.app.flags
 flags.DEFINE_boolean('use_gpu', True, 'Whether to use gpu or not')
 flags.DEFINE_boolean('is_train', False, 'Whether to do training or testing')
+# test
 flags.DEFINE_boolean('is_save', True, 'Whether to save results')
 flags.DEFINE_string('dataset', 'moderate', 'Select a dataset from mild/moderate/severe')
+flags.DEFINE_string('play_model', 'models/', 'Path for testing model')
+# training
+flags.DEFINE_string('save_dir', 'models/save/', 'Path for saving models')
+flags.DEFINE_string('log_dir', 'logs/', 'Path for logs')
 FLAGS = flags.FLAGS
 
 
 def main(_):
     with tf.Session() as sess:
-        config = get_config(FLAGS) or FLAGS
+        config = get_config(FLAGS)
         env = MyEnvironment(config)
         agent = Agent(config, env, sess)
 
         if FLAGS.is_train:
-            # agent.train()
-            print('To be released.')
+            agent.train()
         else:
             agent.play()
 

@@ -47,3 +47,7 @@ def linear(input_, output_size, stddev=0.001, bias_start=0.0, activation_fn=None
             return activation_fn(out), w, b
         else:
             return out, w, b
+
+
+def clipped_error(x):
+    return tf.where(tf.abs(x) < 1.0, 0.5 * tf.square(x), tf.abs(x) - 0.5)  # Huber loss

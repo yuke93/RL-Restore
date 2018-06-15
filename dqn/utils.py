@@ -22,6 +22,16 @@ def load_imgs(list_in, list_gt, size = 63):
     return imgs_in, imgs_gt
 
 
+def data_reformat(data):
+    """RGB <--> BGR, swap H and W"""
+    assert data.ndim == 4
+    out = data.copy()
+    out[:, :, :, 0] = data[:, :, :, 2]
+    out[:, :, :, 2] = data[:, :, :, 0]
+    out = np.swapaxes(out, 1, 2)
+    return out
+
+
 def step_psnr_reward(psnr, psnr_pre):
     reward = psnr - psnr_pre
     return reward

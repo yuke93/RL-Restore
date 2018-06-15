@@ -10,7 +10,6 @@ def class_vars(obj):
 
 
 class BaseModel(object):
-    """Abstract object representing an Reader model."""
     def __init__(self, config):
         self._saver = None
         self.config = config
@@ -19,8 +18,9 @@ class BaseModel(object):
             self._attrs = config.__dict__['__flags']
         except:
             self._attrs = class_vars(config)
-        pp = pprint.PrettyPrinter().pprint
-        pp(self._attrs)
+        if config.is_train:
+            pp = pprint.PrettyPrinter().pprint
+            pp(self._attrs)
 
         self.config = config
 
@@ -30,14 +30,14 @@ class BaseModel(object):
 
 
     def save_model(self, step=None):
-        print(" [*] Saving checkpoints...")
-        if not os.path.exists(self.checkpoint_dir):
-            os.makedirs(self.checkpoint_dir)
-        self.saver.save(self.sess, self.checkpoint_dir, global_step=step)
+        print(" [*] Saving model...")
+        if not os.path.exists(self.save_dir):
+            os.makedirs(self.save_dir)
+        self.saver.save(self.sess, self.save_dir, global_step=step)
 
 
     def load_model(self):
-        print(" [*] Loading checkpoints...")
+        print(" [*] Loading model...")
         ckpt = tf.train.get_checkpoint_state(self.play_model)
         if ckpt and ckpt.model_checkpoint_path:
             ckpt_name = os.path.basename(ckpt.model_checkpoint_path)
@@ -48,16 +48,6 @@ class BaseModel(object):
         else:
             print(" [!] Load FAILED: %s" % self.play_model)
             return False
-
-
-    @property
-    def checkpoint_dir(self):
-        return os.path.join('checkpoints', self.model_dir)
-
-
-    @property
-    def model_dir(self):
-        return 'model/'
 
 
     @property

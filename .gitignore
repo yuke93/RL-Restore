@@ -1,3 +1,13 @@
 *.pyc
 results/
 .idea/
+
+# model and log
+models/save/
+logs/
+
+# data
+data/backup/
+data/train/*.h5
+data/train/*.jpg
+data/train/DIV2K/
