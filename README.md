@@ -29,7 +29,7 @@ cuDNN 5.1
 
     - Replace `test_images/` with the downloaded data and play with the whole dataset.
 
--Naming rules
+- Naming rules
 
     - Each saved image name refers to a selected toolchain. Please refer to #1.
 
