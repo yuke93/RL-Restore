@@ -25,7 +25,6 @@ def load_imgs(list_in, list_gt, size = 63):
 def data_reformat(data):
     """RGB <--> BGR, swap H and W"""
     assert data.ndim == 4
-    out = data.copy()
     out = data[:, :, :, ::-1]
     out = np.swapaxes(out, 1, 2)
     return out
