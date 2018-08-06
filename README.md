@@ -1,15 +1,12 @@
 ## RL-Restore [[project page](http://mmlab.ie.cuhk.edu.hk/projects/RL-Restore/)][[paper](https://arxiv.org/abs/1804.03312)]
-Our environment settings:
-
-Python 2.7
-
+We have run our code under following settings:
+Python 2.7/3.5
 [TensorFlow](https://www.tensorflow.org/) 1.3/1.4
-
 CUDA 8.0
-
 cuDNN 5.1
 
-:triangular_flag_on_post: Training code is ready!
+:triangular_flag_on_post: Add Python3 compatibility. Aug 6
+:triangular_flag_on_post: Training code is ready! Jun 15
 
 ### Overview
 
@@ -31,6 +28,10 @@ cuDNN 5.1
     - All test sets can be downloaded at [Google Drive](https://drive.google.com/open?id=19z2s1e3zT8_1J9ZtsCOrzUSsrQahuINo) or [Baidu Cloud](https://pan.baidu.com/s/1RXTcfI-mne5YZh3myQcjzQ).
 
     - Replace `test_images/` with the downloaded data and play with the whole dataset.
+
+-Naming rules
+
+    - Each saved image name refers to a selected toolchain. Please refer to #1.
 
 ### Train
 - Download training images
