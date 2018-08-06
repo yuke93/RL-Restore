@@ -1,11 +1,11 @@
 ## RL-Restore [[project page](http://mmlab.ie.cuhk.edu.hk/projects/RL-Restore/)][[paper](https://arxiv.org/abs/1804.03312)]
-We have run our code under following settings:
-Python 2.7/3.5
-[TensorFlow](https://www.tensorflow.org/) 1.3/1.4
-CUDA 8.0
+We have run our code under following settings:<br/>
+Python 2.7/3.5<br/>
+[TensorFlow](https://www.tensorflow.org/) 1.3/1.4<br/>
+CUDA 8.0<br/>
 cuDNN 5.1
 
-:triangular_flag_on_post: Add Python3 compatibility. Aug 6
+:triangular_flag_on_post: Add Python3 compatibility. Aug 6<br/>
 :triangular_flag_on_post: Training code is ready! Jun 15
 
 ### Overview
@@ -31,7 +31,7 @@ cuDNN 5.1
 
 - Naming rules
 
-    - Each saved image name refers to a selected toolchain. Please refer to #1.
+    - Each saved image name refers to a selected toolchain. Please refer to this [issue](https://github.com/yuke93/RL-Restore/issues/1).
 
 ### Train
 - Download training images
