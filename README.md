@@ -1,5 +1,13 @@
 ## RL-Restore [[project page](http://mmlab.ie.cuhk.edu.hk/projects/RL-Restore/)][[paper](https://arxiv.org/abs/1804.03312)]
-We run this code under [TensorFlow](https://www.tensorflow.org/) 1.3.
+Our environment settings:
+
+Python 2.7
+
+[TensorFlow](https://www.tensorflow.org/) 1.3/1.4
+
+CUDA 8.0
+
+cuDNN 5.1
 
 :triangular_flag_on_post: Training code is ready!
 
