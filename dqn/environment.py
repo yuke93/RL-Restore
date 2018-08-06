@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 import os
 import h5py
-from utils import psnr_cal, load_imgs, step_psnr_reward, data_reformat
+from .utils import psnr_cal, load_imgs, step_psnr_reward, data_reformat
 
 class MyEnvironment(object):
     def __init__(self, config):
@@ -109,7 +109,7 @@ class MyEnvironment(object):
                     self.train_cur = 0
 
                 # load new file
-                print 'loading file No.%d' % (self.train_cur + 1)
+                print('loading file No.%d' % (self.train_cur + 1))
                 f = h5py.File(self.train_list[self.train_cur], 'r')
                 self.data = f['data'].value
                 self.label = f['label'].value

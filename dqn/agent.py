@@ -47,7 +47,10 @@ class Agent(BaseModel):
             self.l4, self.w['l4_w'], self.w['l4_b'] = conv2d(self.l3_out, 24, [5, 5], [2, 2],
                                                              activation_fn, self.cnn_format, name='l4')
             shape = self.l4.get_shape().as_list()
-            self.l6_flat = tf.reshape(self.l4, [-1, reduce(lambda x, y: x * y, shape[1:])])
+            len_flat = 1
+            for k in range(1, len(shape)):
+                len_flat *= shape[k]
+            self.l6_flat = tf.reshape(self.l4, [-1, len_flat])
 
             # Add action as input
             self.action_in = tf.placeholder('float32', [None, self.action_size - 1], name='action_in')
@@ -92,7 +95,10 @@ class Agent(BaseModel):
                 self.target_l4, self.t_w['l4_w'], self.t_w['l4_b'] = \
                     conv2d(self.target_l3_out, 24, [5, 5], [2, 2], activation_fn, self.cnn_format, name='target_l4')
                 shape = self.target_l4.get_shape().as_list()
-                self.target_l6_flat = tf.reshape(self.target_l4, [-1, reduce(lambda x, y: x * y, shape[1:])])
+                target_len_flat = 1
+                for k in range(1, len(shape)):
+                    target_len_flat *= shape[k]
+                self.target_l6_flat = tf.reshape(self.target_l4, [-1, target_len_flat])
 
                 # Add action as input
                 self.target_action_in = tf.placeholder('float32', [None, self.action_size - 1],
@@ -150,7 +156,7 @@ class Agent(BaseModel):
                 self.opt = tf.train.AdamOptimizer(learning_rate=self.learning_rate_op)
 
                 # accumulated gradients (for training LSTM with toolchains of dynamic length)
-                tvs = self.w.values()
+                tvs = list(self.w.values())
                 accum_vars = [tf.Variable(tf.zeros_like(tv.initialized_value()), trainable=False) for tv in tvs]
                 self.zero_ops = [tv.assign(tf.zeros_like(tv)) for tv in accum_vars]
                 gvs = self.opt.compute_gradients(self.loss, tvs)
@@ -223,8 +229,8 @@ class Agent(BaseModel):
                 avg_q = self.total_q / self.update_count
                 avg_ep_reward = np.mean(ep_rewards)
 
-                print '\navg_r: %.4f, avg_l: %.6f, avg_q: %3.6f, avg_ep_r: %.4f' \
-                      % (avg_reward, avg_loss, avg_q, avg_ep_reward)
+                print('\navg_r: %.4f, avg_l: %.6f, avg_q: %3.6f, avg_ep_r: %.4f' \
+                      % (avg_reward, avg_loss, avg_q, avg_ep_reward))
 
                 if self.step % self.save_step == self.save_step - 1 and max_avg_ep_reward * 0.9 <= avg_ep_reward:
                     self.save_model(self.step + 1)
@@ -248,7 +254,7 @@ class Agent(BaseModel):
                 reward_str += 'reward_sum: %.4f, '
                 reward_test_vec.append(reward_sum)
                 print_str = reward_str + psnr_str + 'base_psnr: %.4f'
-                print print_str % tuple(reward_test_vec + psnr_test_vec + [base_psnr])
+                print(print_str % tuple(reward_test_vec + psnr_test_vec + [base_psnr]))
 
                 # logging (write summary)
                 diction = {'training.learning_rate':
@@ -326,7 +332,7 @@ class Agent(BaseModel):
             if num < 1:
                 continue
             rnn_length = m + 1
-            rnn_batch = num / rnn_length
+            rnn_batch = num // rnn_length
 
             # derive action at previous step
             action_in = np.zeros([num, action_size - 1])
