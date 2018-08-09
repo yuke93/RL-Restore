@@ -1,9 +1,11 @@
 ## RL-Restore [[project page](http://mmlab.ie.cuhk.edu.hk/projects/RL-Restore/)][[paper](https://arxiv.org/abs/1804.03312)]
-We have run our code under following settings:<br/>
-Python 2.7/3.5<br/>
-[TensorFlow](https://www.tensorflow.org/) 1.3/1.4<br/>
-CUDA 8.0<br/>
-cuDNN 5.1
+We have tested our code under the following settings:<br/>
+
+| Python | TensorFlow | CUDA | cuDNN |
+| :----: | :--------: | :--: | :---: |
+|  2.7   |  1.3       | 8.0  |  5.1  |
+|  3.5   |  1.4       | 8.0  |  5.1  |
+|  3.6   |  1.10      | 9.0  |  7.0  |
 
 :triangular_flag_on_post: Add Python3 compatibility. Aug 6<br/>
 :triangular_flag_on_post: Training code is ready! Jun 15
@@ -15,6 +17,13 @@ cuDNN 5.1
 
 - Results
 ![](imgs/restore.gif)
+
+### Prerequisite
+
+[Anaconda](https://www.anaconda.com/download/) is highly recommended as you can easily adjust the environment setting.
+```
+pip install opencv-python scipy tqdm h5py
+```
 
 ### Test
 - Start testing

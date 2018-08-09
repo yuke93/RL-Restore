@@ -1,3 +1,5 @@
+import tensorflow as tf
+
 class AgentConfig(object):
     # train / test
     is_train = False
@@ -61,8 +63,16 @@ class DQNConfig(AgentConfig, EnvironmentConfig):
 def get_config(FLAGS):
     config = DQNConfig
 
-    for k, v in FLAGS.__dict__['__flags'].items():
-        if hasattr(config, k):
-            setattr(config, k, v)
+    # TF version
+    tf_version = tf.__version__.split('.')
+    if int(tf_version[0]) >= 1 and int(tf_version[1]) > 4:  # TF version > 1.4
+        for k in FLAGS:
+            v = FLAGS[k].value
+            if hasattr(config, k):
+                setattr(config, k, v)
+    else:
+        for k, v in FLAGS.__dict__['__flags'].items():
+            if hasattr(config, k):
+                setattr(config, k, v)
 
     return config
