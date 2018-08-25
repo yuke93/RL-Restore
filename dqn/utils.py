@@ -22,6 +22,16 @@ def load_imgs(list_in, list_gt, size = 63):
     return imgs_in, imgs_gt
 
 
+def img2patch(my_img, size=63):
+    height, width, _ = np.shape(my_img)
+    assert height >= size and width >= size
+    patches = []
+    for k in range(0, height - size + 1, size):
+        for m in range(0, width - size + 1, size):
+            patches.append(my_img[k: k+size, m: m+size, :].copy())
+    return np.array(patches)
+
+
 def data_reformat(data):
     """RGB <--> BGR, swap H and W"""
     assert data.ndim == 4

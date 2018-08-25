@@ -28,7 +28,10 @@ def main(_):
         if FLAGS.is_train:
             agent.train()
         else:
-            agent.play()
+            if FLAGS.dataset == 'mine':
+                agent.play_mine()
+            else:
+                agent.play()
 
 
 if __name__ == '__main__':

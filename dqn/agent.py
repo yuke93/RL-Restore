@@ -8,7 +8,7 @@ import tensorflow as tf
 from .base import BaseModel
 from .ops import linear, conv2d, clipped_error
 from .replay_memory import ReplayMemory
-from .utils import data_reformat
+from .utils import data_reformat, img2patch
 from tqdm import tqdm
 
 class Agent(BaseModel):
@@ -417,6 +417,35 @@ class Agent(BaseModel):
         return actions
 
 
+    def predict_mine(self, my_img, pre_action=None, count_step=0):
+        # image --> patches
+        my_patches = img2patch(my_img)
+        num_patch = len(my_patches)
+
+        if count_step == 0:
+            # initialize LSTM states
+            self.state_test = (np.zeros([num_patch, self.h_size]), np.zeros([num_patch, self.h_size]))
+            self.sess_test = tf.get_default_session()
+
+        # set action at the previous step as input
+        action_in = np.zeros([num_patch, self.action_size - 1])
+        if count_step > 0:
+            assert pre_action is not None and pre_action != self.action_size - 1
+            action_in[:, pre_action] = 1.
+
+        # run the agent
+        actions_vec, self.state_test = self.sess_test.run([self.q, self.rnn_state],
+                                                          {self.s_t: my_patches, self.action_in: action_in,
+                                                           self.state_in: self.state_test,
+                                                           self.batch: num_patch, self.length: 1})
+        actions = actions_vec.argmax(axis=1)
+
+        # vote
+        action = np.bincount(actions).argmax()
+
+        return action
+
+
     def play(self):  # test
         rewards = []
         actions = []
@@ -484,5 +513,48 @@ class Agent(BaseModel):
                                                   img_num + batch_size))
         mean_base_psnr = total_base_psnr / (img_num + batch_size)
         print('base_psnr: %.4f' % mean_base_psnr)
+
+
+    def play_mine(self):
+        # create save folder if needed
+        if self.is_save:
+            save_path = 'results/' + self.dataset + '/'
+            if not os.path.exists(save_path):
+                os.makedirs(save_path)
+
+        my_img, base_name = self.env.update_test_mine()
+        while my_img is not None:
+            for m in range(self.stop_step):
+                # first step
+                if m == 0:
+                    # previous action is None
+                    pre_action = None
+                    # initialize names
+                    if self.is_save:
+                        name = save_path + base_name
+                        # save the initial image
+                        cv2.imwrite(name + '.png', my_img[:,:,::-1] * 255)
+
+
+                # predict action
+                action = self.predict_mine(my_img, pre_action, count_step=m)
+                if action == self.action_size - 1:
+                    break
+                pre_action = action
+                my_img_next = self.env.act_test_mine(my_img, action)
+                my_img = my_img_next
+
+                # save images
+                if self.is_save:
+                    name += '_' + str(action + 1)
+                    save_img = my_img[:,:,::-1] * 255
+                    cv2.imwrite(name + '.png', save_img)
+
+            # update my test image
+            print('Image %s processed' % base_name)
+            my_img, base_name = self.env.update_test_mine()
+
+        print('Done!')
+        return
 
 

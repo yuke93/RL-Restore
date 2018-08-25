@@ -4,7 +4,7 @@ folder = './DIV2K/';
 savepath = 'train.h5';
 size_input = 63;
 size_label = 63;
-stride = 96;
+stride = 96;  % stride=56 in the paper
 blur_sig = 0:0.5:5;
 noi_sig = 0:5:50;
 jpg_q = [100,80,60,50,40:-5:10];

@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 import os
 import h5py
+import cv2
 from .utils import psnr_cal, load_imgs, step_psnr_reward, data_reformat
 
 class MyEnvironment(object):
@@ -34,34 +35,44 @@ class MyEnvironment(object):
             self.data_all = self.data_test
             self.label_all = self.label_test
         else:
-            # test data
-            self.test_batch = config.test_batch
-            self.test_in = config.test_dir + config.dataset + '_in/'
-            self.test_gt = config.test_dir + config.dataset + '_gt/'
-            list_in = [self.test_in + name for name in os.listdir(self.test_in)]
-            list_in.sort()
-            list_gt = [self.test_gt + name for name in os.listdir(self.test_gt)]
-            list_gt.sort()
-            self.name_list = [os.path.splitext(os.path.basename(file))[0] for file in list_in]
-            self.data_all, self.label_all = load_imgs(list_in, list_gt)
-            self.test_total = len(list_in)
-            self.test_cur = 0
+            if config.dataset == 'mine':
+                self.my_img_dir = config.test_dir + 'mine/'
+                self.my_img_list = os.listdir(self.my_img_dir)
+                self.my_img_list.sort()
+                self.my_img_idx = 0
 
-            # data reformat, because the data for tools training are in a different format
-            self.data_all = data_reformat(self.data_all)
-            self.label_all = data_reformat(self.label_all)
-            self.data_test = self.data_all[0 : min(self.test_batch, self.test_total), ...]
-            self.label_test = self.label_all[0 : min(self.test_batch, self.test_total), ...]
+            elif config.dataset in ['mild', 'moderate', 'severe']:
+                # test data
+                self.test_batch = config.test_batch
+                self.test_in = config.test_dir + config.dataset + '_in/'
+                self.test_gt = config.test_dir + config.dataset + '_gt/'
+                list_in = [self.test_in + name for name in os.listdir(self.test_in)]
+                list_in.sort()
+                list_gt = [self.test_gt + name for name in os.listdir(self.test_gt)]
+                list_gt.sort()
+                self.name_list = [os.path.splitext(os.path.basename(file))[0] for file in list_in]
+                self.data_all, self.label_all = load_imgs(list_in, list_gt)
+                self.test_total = len(list_in)
+                self.test_cur = 0
+    
+                # data reformat, because the data for tools training are in a different format
+                self.data_all = data_reformat(self.data_all)
+                self.label_all = data_reformat(self.label_all)
+                self.data_test = self.data_all[0 : min(self.test_batch, self.test_total), ...]
+                self.label_test = self.label_all[0 : min(self.test_batch, self.test_total), ...]
+            else:
+                raise ValueError('Invalid dataset!')
 
-        # input PSNR
-        self.base_psnr = 0.
-        for k in range(len(self.data_all)):
-            self.base_psnr += psnr_cal(self.data_all[k, ...], self.label_all[k, ...])
-        self.base_psnr /= len(self.data_all)
+        if self.is_train or config.dataset!='mine':
+            # input PSNR
+            self.base_psnr = 0.
+            for k in range(len(self.data_all)):
+                self.base_psnr += psnr_cal(self.data_all[k, ...], self.label_all[k, ...])
+            self.base_psnr /= len(self.data_all)
 
-        # reward functions
-        self.rewards = {'step_psnr_reward': step_psnr_reward}
-        self.reward_function = self.rewards[self.reward_func]
+            # reward functions
+            self.rewards = {'step_psnr_reward': step_psnr_reward}
+            self.reward_function = self.rewards[self.reward_func]
 
         # build toolbox
         self.action_size = 12 + 1
@@ -212,6 +223,33 @@ class MyEnvironment(object):
                 self.base_psnr += psnr_cal(self.data_test[k, ...], self.label_test[k, ...])
             self.base_psnr /= len(self.data_test)
             return True #successful
+
+
+    def act_test_mine(self, my_img_cur, action):
+        if action == self.action_size - 1:
+            return my_img_cur.copy()
+        else:
+            if my_img_cur.ndim == 4:
+                feed_img_cur = my_img_cur
+            else:
+                feed_img_cur = my_img_cur.reshape((1,) + my_img_cur.shape)
+            my_img_next = self.sessions[action].run(self.outputs[action], feed_dict={self.inputs[action]: feed_img_cur})
+            return my_img_next[0, ...]
+
+
+    def update_test_mine(self):
+        """
+        :return: (image, image name) or (None, None)
+        """
+        if self.my_img_idx >= len(self.my_img_list):
+            return None, None
+        else:
+            img_name = self.my_img_list[self.my_img_idx]
+            base_name, _ = os.path.splitext(img_name)
+            my_img = cv2.imread(self.my_img_dir + img_name)
+            my_img = my_img[:,:,::-1] / 255.
+            self.my_img_idx += 1
+            return my_img, base_name
 
 
     def get_test_imgs(self):
