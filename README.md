@@ -1,12 +1,6 @@
 ## RL-Restore [[project page](http://mmlab.ie.cuhk.edu.hk/projects/RL-Restore/)][[paper](https://arxiv.org/abs/1804.03312)]
-We have tested our code under the following settings:<br/>
 
-| Python | TensorFlow | CUDA | cuDNN |
-| :----: | :--------: | :--: | :---: |
-|  2.7   |  1.3       | 8.0  |  5.1  |
-|  3.5   |  1.4       | 8.0  |  5.1  |
-|  3.6   |  1.10      | 9.0  |  7.0  |
-
+:triangular_flag_on_post: Support arbitrary input size. Aug 25<br/>
 :triangular_flag_on_post: Add Python3 compatibility. Aug 6<br/>
 :triangular_flag_on_post: Training code is ready! Jun 15
 
@@ -15,22 +9,40 @@ We have tested our code under the following settings:<br/>
 - Framework
 <img src='imgs/framework.png' align="center">
 
-- Results
+- Synthetic & real-world results
 ![](imgs/restore.gif)
+<p align="center">
+    <img src='imgs/real_world.png' width = "100%">
+</p>
 
 ### Prerequisite
 
-[Anaconda](https://www.anaconda.com/download/) is highly recommended as you can easily adjust the environment setting.
-```
-pip install opencv-python scipy tqdm h5py
-```
+- [Anaconda](https://www.anaconda.com/download/) is highly recommended as you can easily adjust the environment setting.
+    ```
+    pip install opencv-python scipy tqdm h5py
+    ```
+
+- We have tested our code under the following settings:<br/>
+
+    | Python | TensorFlow | CUDA | cuDNN |
+    | :----: | :--------: | :--: | :---: |
+    |  2.7   |  1.3       | 8.0  |  5.1  |
+    |  3.5   |  1.4       | 8.0  |  5.1  |
+    |  3.6   |  1.10      | 9.0  |  7.0  |
 
 ### Test
-- Start testing
+- Start testing on synthetic dataset
     ```
     python main.py --dataset moderate
     ```
     > `dataset`: choose a test set among `mild`, `moderate` and `severe`
+
+- :heavy_exclamation_mark: Start testing on real-world data (support arbitrary input size)
+    ```
+    python main.py --dataset mine
+    ```
+
+    - You may put your own test images in `data/test/mine/`
 
 - Dataset
 
@@ -40,7 +52,7 @@ pip install opencv-python scipy tqdm h5py
 
 - Naming rules
 
-    - Each saved image name refers to a selected toolchain. Please refer to this [issue](https://github.com/yuke93/RL-Restore/issues/1).
+    - Each saved image name refers to a selected toolchain. Please refer to my second reply in this [issue](https://github.com/yuke93/RL-Restore/issues/1).
 
 ### Train
 - Download training images
