@@ -83,9 +83,9 @@ The DQN algorithm is modified from [DQN-tensorflow](https://github.com/devsister
 ### Citation
 
     @inproceedings{yu2018crafting,
-     author = {Ke Yu, Chao Dong, Liang Lin, and Chen Change Loy},
+     author = {Yu, Ke and Dong, Chao and Lin, Liang and Loy, Chen Change},
      title = {Crafting a Toolchain for Image Restoration by Deep Reinforcement Learning},
-     booktitle = {Proceedings of IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
-     month = {June},
+     booktitle = {Proceedings of IEEE Conference on Computer Vision and Pattern Recognition},
+     pages={2443--2452},
      year = {2018} 
     }
