@@ -1,6 +1,6 @@
 function [curr_dat_sz, curr_lab_sz] = store2hdf5(filename, data, labels, create, startloc, chunksz)  
   % *data* is C*H*W*N matrix of images should be normalized (e.g. to lie between 0 and 1) beforehand
-  % *label* is D*N matrix of labels (D labels per sample) 
+  % *labels* is C*H*W*N matrix of ground-truth images 
   % *create* [0/1] specifies whether to create file newly or to append to previously created file, useful to store information in batches when a dataset is too big to be held in memory  (default: 1)
   % *startloc* (point at which to start writing data). By default, 
   % if create=1 (create mode), startloc.data=[1 1 1 1], and startloc.lab=[1 1]; 
@@ -28,8 +28,8 @@ function [curr_dat_sz, curr_lab_sz] = store2hdf5(filename, data, labels, create,
       fprintf('Warning: replacing existing file %s \n', filename);
       delete(filename);
     end      
-    h5create(filename, '/data', [dat_dims(1:end-1) Inf], 'Datatype', 'single', 'ChunkSize', [dat_dims(1:end-1) chunksz]); % width, height, channels, number 
-    h5create(filename, '/label', [lab_dims(1:end-1) Inf], 'Datatype', 'single', 'ChunkSize', [lab_dims(1:end-1) chunksz]); % width, height, channels, number 
+    h5create(filename, '/data', [dat_dims(1:end-1) Inf], 'Datatype', 'single', 'ChunkSize', [dat_dims(1:end-1) chunksz]);
+    h5create(filename, '/label', [lab_dims(1:end-1) Inf], 'Datatype', 'single', 'ChunkSize', [lab_dims(1:end-1) chunksz]);
     if ~exist('startloc','var') 
       startloc.dat=[ones(1,length(dat_dims)-1), 1];
       startloc.lab=[ones(1,length(lab_dims)-1), 1];
