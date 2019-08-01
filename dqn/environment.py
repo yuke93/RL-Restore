@@ -66,9 +66,9 @@ class MyEnvironment(object):
         if self.is_train or config.dataset!='mine':
             # input PSNR
             self.base_psnr = 0.
-            for k in range(len(self.data_all)):
-                self.base_psnr += psnr_cal(self.data_all[k, ...], self.label_all[k, ...])
-            self.base_psnr /= len(self.data_all)
+            for k in range(len(self.data_test)):
+                self.base_psnr += psnr_cal(self.data_test[k, ...], self.label_test[k, ...])
+            self.base_psnr /= len(self.data_test)
 
             # reward functions
             self.rewards = {'step_psnr_reward': step_psnr_reward}
