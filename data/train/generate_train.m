@@ -9,6 +9,9 @@ blur_sig = 0:0.5:5;
 noi_sig = 0:5:50;
 jpg_q = [100,80,60,50,40:-5:10];
 level = [12, 17];
+% moderate: [12, 17]
+%     mild: [9, 11]
+%   severe: [18, 20]
 
 %% initialization
 data = zeros(size_input, size_input, 3, 1);
